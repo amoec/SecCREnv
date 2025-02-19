@@ -6,8 +6,8 @@ from stable_baselines3 import SAC
 
 import numpy as np
 
-import SecCREnv.bluesky_gym
-import SecCREnv.bluesky_gym.envs
+import CR_HiFi.bluesky_gym
+import CR_HiFi.bluesky_gym.envs
 
 bluesky_gym.register_envs()
 

@@ -2,7 +2,7 @@ import numpy as np
 import pygame
 
 import bluesky as bs
-from SecCREnv.bluesky_gym.envs.common.screen_dummy import ScreenDummy
+from CR_HiFi.bluesky_gym.envs.common.screen_dummy import ScreenDummy
 
 import gymnasium as gym
 from gymnasium import spaces

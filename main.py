@@ -17,7 +17,7 @@ import yaml
 import random
 import csv
 
-from SecCREnv.bluesky_gym import register_envs
+from CR_HiFi.bluesky_gym import register_envs
 
 # Register BlueSky environments
 register_envs()
