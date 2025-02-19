@@ -20,7 +20,7 @@ Using the environments follows the standard API from Gymnasium, an example of wh
 
 ```python
 import gymnasium as gym
-import bluesky_gym
+import SecCREnv.bluesky_gym
 bluesky_gym.register_envs()
 
 env = gym.make('MergeEnv-v0', render_mode='human')
@@ -36,7 +36,7 @@ Additionally you can directly use algorithms from standardized libraries such as
 
 ```python
 import gymnasium as gym
-import bluesky_gym
+import SecCREnv.bluesky_gym
 from stable_baselines3 import DDPG
 bluesky_gym.register_envs()
 

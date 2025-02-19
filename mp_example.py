@@ -13,10 +13,10 @@ from stable_baselines3 import PPO, SAC, TD3, DDPG
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
-import bluesky_gym
-import bluesky_gym.envs
+import SecCREnv.bluesky_gym
+import SecCREnv.bluesky_gym.envs
 
-from bluesky_gym.utils import logger
+from SecCREnv.bluesky_gym.utils import logger
 
 bluesky_gym.register_envs()
 

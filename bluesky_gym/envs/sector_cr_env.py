@@ -2,11 +2,12 @@ import numpy as np
 import pygame
 
 import bluesky as bs
-from bluesky_gym.envs.common.screen_dummy import ScreenDummy
-import bluesky_gym.envs.common.functions as fn
+from SecCREnv.bluesky_gym.envs.common.screen_dummy import ScreenDummy
+import SecCREnv.bluesky_gym.envs.common.functions as fn
 
 import gymnasium as gym
 from gymnasium import spaces
+from gymnasium.utils import seeding
 
 AC_DENSITY_RANGE = (0.003, 0.007) # In AC/NM^2
 AC_DENSITY_MU = 0.005 # In AC/NM^2
@@ -17,7 +18,7 @@ CENTER = np.array([51.990426702297746, 4.376124857109851]) # TU Delft AE Faculty
 ALTITUDE = 350 # In FL
 
 # Aircraft parameters
-AC_SPD = 150
+AC_SPD = (200, 250) # m/s
 AC_TYPE = "A320"
 ACTOR = "KL001"
 
@@ -42,7 +43,7 @@ class SectorCREnv(gym.Env):
     """
     metadata = {"render_modes": ["rgb_array","human"], "render_fps": 120}
     
-    def __init__(self, render_mode=None, ac_density_mode="normal"):
+    def __init__(self, render_mode=None, ac_density_mode="normal", seed=None):
         self.window_width = 512
         self.window_height = 512
         self.window_size = (self.window_width, self.window_height) # Size of the rendered environment
@@ -83,6 +84,13 @@ class SectorCREnv(gym.Env):
 
         self.window = None
         self.clock = None
+        
+        # Initialize random number generator
+        self.seed(seed)
+    
+    def seed(self, seed=None):
+        self.np_random, seed = seeding.np_random(seed)
+        return [seed]
     
     def reset(self, seed=None, options=None):
         bs.traf.reset()
@@ -185,7 +193,7 @@ class SectorCREnv(gym.Env):
             edge = edges[0]
             frac = (d - current_d) / edge[2]
             p = edge[0] + frac * (edge[1] - edge[0])
-            self.wpts.append(p)
+            self.wpts.append(p*10) # Place waypoints 10 NM away from the airspace boundary
         
     def _generate_ac(self) -> None:
         
@@ -207,14 +215,17 @@ class SectorCREnv(gym.Env):
         init_pos_agent = init_p_latlong[0]
         hdg_agent = fn.get_hdg(init_pos_agent, wpt_agent)
         
+        rnd_spd = np.random.uniform(*AC_SPD)
+        
         # Actor AC is the only one that has ACTOR as acid
-        bs.traf.cre(ACTOR, actype=AC_TYPE, aclat=init_pos_agent[0], aclon=init_pos_agent[1], achdg=hdg_agent, acspd=AC_SPD, acalt=ALTITUDE)
+        bs.traf.cre(ACTOR, actype=AC_TYPE, aclat=init_pos_agent[0], aclon=init_pos_agent[1], achdg=hdg_agent, acspd=rnd_spd, acalt=ALTITUDE)
         
         for i in range(1, len(init_p_latlong)):
+            rnd_spd = np.random.uniform(*AC_SPD)
             wpt = fn.nm_to_latlong(CENTER, self.wpts[i])
             init_pos = init_p_latlong[i]
             hdg = fn.get_hdg(init_pos, wpt)
-            bs.traf.cre(acid=str(i), actype=AC_TYPE, aclat=init_pos[0], aclon=init_pos[1], achdg=hdg, acspd=AC_SPD, acalt=ALTITUDE)
+            bs.traf.cre(acid=str(i), actype=AC_TYPE, aclat=init_pos[0], aclon=init_pos[1], achdg=hdg, acspd=rnd_spd, acalt=ALTITUDE)
     
     def _get_info(self):
         # Here you implement any additional info that you want to log after an episode

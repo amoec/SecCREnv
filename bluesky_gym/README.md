@@ -1,4 +1,4 @@
-# bluesky_gym
+# SecCREnv.bluesky_gym
 The main source code of the gym environment. 
 
 Contains the envs and scripts folders where the scenarios/environments and the training loops are respectively. 
