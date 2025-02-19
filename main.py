@@ -167,6 +167,11 @@ def main(args):
 
     # Create environment
     env = gym.make(env_name, render_mode=None, seed=args.seed)
+    
+    # Set network architecture
+    policy_kwargs = dict(
+        net_arch=[256, 256] # Default architecture used for all algorithms
+    )
 
     # Initialize or load the model
     model_class = ALGORITHMS[algorithm]
@@ -181,7 +186,7 @@ def main(args):
             print(f"Replay buffer loaded from: {rb_path}")
     else:
         # Default model hyperparams
-        model = model_class(policy_type, env)
+        model = model_class(policy_type, env, policy_kwargs=policy_kwargs)
 
     # Train the model
     if train:
