@@ -6,3 +6,5 @@ images/
 logs/
 models/
 dist/
+__pycache__
+SecCREnv.egg-info/
