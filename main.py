@@ -8,7 +8,6 @@ TODO:
 
 import gymnasium as gym
 from stable_baselines3 import SAC, TD3, DDPG, PPO, A2C, DQN
-from stable_baselines3.common.callbacks import BaseCallback, CallbackList
 import numpy as np
 import argparse
 from typing import Union
@@ -18,6 +17,8 @@ import random
 import csv
 
 from CR_HiFi.bluesky_gym import register_envs
+
+from ..common.callbacks import CSVLoggerCallback
 
 # Register BlueSky environments
 register_envs()
@@ -33,62 +34,6 @@ ALGORITHMS = {
 }
 # Dictionary of off-policy algorithms
 OFF_POLICY = {"SAC", "TD3", "DDPG", "DQN"}
-    
-class CSVLoggerCallback(BaseCallback):
-    def __init__(self, log_dir, filename, verbose=0):
-        super().__init__(verbose)
-        os.makedirs(log_dir, exist_ok=True)
-        self.log_path = os.path.join(log_dir, filename)
-        self.headers = [
-            "timesteps",
-            "episode",
-            "reward"
-        ]
-        self.current_episode = 0
-        self.buffer = []  # buffer for metrics
-        self.flush_frequency = 1000  # flush every 1000 episodes
-        self._write_header()
-    
-    def _write_header(self):
-        if not os.path.exists(self.log_path) or os.path.getsize(self.log_path) == 0:
-            with open(self.log_path, "w") as f:
-                writer = csv.writer(f)
-                writer.writerow(self.headers)
-        
-    def _flush_buffer(self):
-        if self.buffer:
-            with open(self.log_path, "a") as f:
-                writer = csv.writer(f)
-                for metrics in self.buffer:
-                    writer.writerow([metrics[h] for h in self.headers])
-            self.buffer = []
-    
-    def _on_step(self) -> bool:
-        step_reward = self.locals.get("rewards", [0])[0]
-        done = self.locals.get("dones", [False])[0]
-        
-        # Only increment episode count when an episode is done
-        if done:
-            self.current_episode += 1
-        
-        metrics = {
-            "timesteps": self.num_timesteps,
-            "episode": self.current_episode,
-            "reward": step_reward
-        }
-        
-        # Store metric in buffer
-        self.buffer.append(metrics)
-        
-        # Flush buffer every `flush_frequency` episodes or if done on final steps (optional)
-        if done and self.current_episode % self.flush_frequency == 0:
-            self._flush_buffer()
-                    
-        return True
-    
-    def on_training_end(self):
-        # Flush remaining buffer
-        self._flush_buffer()
 
 def load_algo_config(algo_name):
     """
@@ -160,10 +105,7 @@ def main(args):
     log_dir = f'{hifi_experiment_folder}/logs'
     os.makedirs(log_dir, exist_ok=True)
     file_name = 'results.csv'
-    csv_logger_callback = CSVLoggerCallback(log_dir, file_name)
-    
-    # Initialize EarlyStopping callback
-    callback_list = csv_logger_callback
+    csv_logger_callback = CSVLoggerCallback(log_dir, file_name) # Initialize custom CSV logger
 
     # Create environment
     env = gym.make(env_name, render_mode=None, seed=args.seed)
@@ -190,7 +132,7 @@ def main(args):
 
     # Train the model
     if train:
-        model.learn(total_timesteps=2e6, callback=callback_list)
+        model.learn(total_timesteps=2e6, callback=csv_logger_callback)
         model_path = f"{hifi_experiment_folder}/model"
         os.makedirs(os.path.dirname(model_path), exist_ok=True)
         model.save(model_path)
